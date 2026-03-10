@@ -1,12 +1,31 @@
 *.iml
+.DS_Store
+
+# Git / editor noise
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Android / Gradle
 .gradle/
-/local.properties
-/.idea/
-/.kotlin/
-/build/
+.kotlin/
+build/
 **/build/
 captures/
-.DS_Store
+local.properties
+**/local.properties
+*.apk
+*.aab
+
+# macOS / Xcode / SwiftPM
 .build/
 .swiftpm/
 DerivedData/
+xcuserdata/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+
+# macOS system files
+._*

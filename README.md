@@ -1,57 +1,73 @@
 # Project Boba
 
-Project Boba is an Android-first, local-only cozy self-care and to-do app built for a single private user. The v0 app centers the avatar on the home screen, rewards completed tasks with points immediately, and lets those points unlock a small shop of cosmetics, phrase packs, and backgrounds.
+Project Boba is a cozy, calming, avatar-first to-do and self-care app.
 
-## Product Summary
+It is being built mainly for Android.
 
-- Warm winter aesthetic with a calm, supportive tone.
-- One unified master task list with starter tasks and custom task creation.
-- Fixed starter tag system for gentle reward-track expansion later.
-- Gentle streak logic: 3 completed tasks qualifies a day, with no punishment for misses.
-- Tap-to-speak avatar catchphrases with cooldown and optional name personalization.
-- Small but functional shop for cosmetics, phrase packs, effects, and backgrounds.
+The goal is to make everyday tasks feel warm, supportive, and rewarding without shame, punishment, or pressure.
 
-## Assumptions
+## Why this repo has two apps
 
-- v0 uses simple Compose-drawn avatar/background visuals instead of custom illustration assets.
-- Local persistence is enough for now, but data models are split cleanly for future backup/export.
-- Android native is preferred over cross-platform abstraction for speed and maintainability.
-- Completion feedback is intentionally soft: haptics, a short tone, a point burst, and a small avatar hop.
+This repo contains two app paths on purpose:
 
-## Architecture
+1. `apps/android-app`
+   - This is the real target product.
+   - This is the app we are actually trying to ship.
+   - Android is the primary platform.
 
-- UI: Jetpack Compose + Material 3 with a custom cozy theme.
-- Navigation: `navigation-compose`.
-- State: single app `ViewModel` coordinating repository-backed flows.
-- Persistence:
-  - Room for tasks, completions, progress, phrases, shop inventory, and ownership.
-  - DataStore Preferences for avatar selections and lightweight settings.
-- Layers:
-  - `data/local`
-  - `data/repository`
-  - `core`
-  - `ui`
-  - `ui/theme`
+2. `apps/macos-preview`
+   - This is a local Mac preview app.
+   - It exists so you can quickly test the product feel on your Mac while the Android app is still being finalized.
+   - It is not the shipping target.
 
-## Screens
+## Which app is the real one?
 
-- Home: central avatar scene, background, streak/points summary, quick task panel, catchphrases.
-- Tasks: master list, starter content, custom task creation with tags and point values.
-- Shop: purchase and equip flow using earned points.
-- Avatar: avatar choice and naming.
-- Settings: light comfort toggles and v0 summary.
+The real app is the Android app in:
 
-## Build Note
+`apps/android-app`
 
-This repo includes a Gradle wrapper pinned to Gradle `8.2.1`. The current host where the app was scaffolded only exposes JDK `25.0.2`, which is too new for reliable Android/AGP verification here. Open the project in Android Studio or run it with a JDK 17-compatible Android setup to build and launch.
+## Which app is just for local preview/testing?
 
-## Local Preview
+The Mac preview app is in:
 
-The intended way to preview the app is:
+`apps/macos-preview`
 
-1. Open the project in Android Studio.
-2. Let Gradle sync.
-3. Use an Android emulator or a connected Pixel device with USB debugging enabled.
-4. Run the `app` configuration.
+It is a support tool for local product validation on your Mac.
 
-If you use a local terminal instead of Android Studio, run `./gradlew assembleDebug` in a JDK 17-compatible Android environment and install the generated debug APK.
+## Start Here
+
+If you want the easiest path, do this:
+
+1. Read [SETUP_GUIDE_BEGINNER.md](/Users/quentinligginsjr/Documents/Quentin%20Liggins%20Jr/Project%20Boba/SETUP_GUIDE_BEGINNER.md).
+2. Open the Mac preview first from `apps/macos-preview`.
+3. Once that launches, open the Android app from `apps/android-app` in Android Studio.
+4. Run the Android app on an emulator.
+5. Read [CODING_STATUS.md](/Users/quentinligginsjr/Documents/Quentin%20Liggins%20Jr/Project%20Boba/CODING_STATUS.md) to see what is built and what is next.
+
+## Repo map
+
+- [PROJECT_STRUCTURE.md](/Users/quentinligginsjr/Documents/Quentin%20Liggins%20Jr/Project%20Boba/PROJECT_STRUCTURE.md)
+- [SETUP_GUIDE_BEGINNER.md](/Users/quentinligginsjr/Documents/Quentin%20Liggins%20Jr/Project%20Boba/SETUP_GUIDE_BEGINNER.md)
+- [GITHUB_PUSH_GUIDE.md](/Users/quentinligginsjr/Documents/Quentin%20Liggins%20Jr/Project%20Boba/GITHUB_PUSH_GUIDE.md)
+- [CODING_STATUS.md](/Users/quentinligginsjr/Documents/Quentin%20Liggins%20Jr/Project%20Boba/CODING_STATUS.md)
+- [PRODUCT_DECISIONS.md](/Users/quentinligginsjr/Documents/Quentin%20Liggins%20Jr/Project%20Boba/PRODUCT_DECISIONS.md)
+
+## Beginner summary
+
+If you feel lost, remember this:
+
+- Mac preview app = easiest place to see the product feeling on your Mac.
+- Android app = the real thing we are building toward.
+- Root docs = your instructions.
+
+## Important setup notes
+
+- For the Mac preview app, use full Xcode.
+- For the Android app, use Android Studio.
+- Android Studio should manage the Android SDK and emulator for you.
+- The Android app expects a normal Android Studio setup with Android Studio's embedded JDK, which should be Java 17-compatible.
+
+## Current app folders
+
+- Android app: [apps/android-app](/Users/quentinligginsjr/Documents/Quentin%20Liggins%20Jr/Project%20Boba/apps/android-app)
+- Mac preview app: [apps/macos-preview](/Users/quentinligginsjr/Documents/Quentin%20Liggins%20Jr/Project%20Boba/apps/macos-preview)
