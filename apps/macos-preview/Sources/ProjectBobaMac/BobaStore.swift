@@ -410,17 +410,39 @@ final class BobaStore: ObservableObject {
             "%s, you are doing enough for this moment.",
             "I am officially cheering for you, %s.",
             "%s, your cozy momentum looks real from here.",
+            "Hey %s, showing up is the hardest part and you did it.",
+            "One small thing at a time, %s. That is the whole secret.",
+            "%s, your quiet effort today is not going unnoticed.",
+            "A soft morning start still counts as a start, %s.",
+            "%s, even a slow day moves you forward.",
+            "You made space for yourself today, %s. That matters.",
+            "I see you trying, %s, and it looks good from here.",
+            "%s, a warm blanket and a finished task — both valid wins.",
+            "The little routines add up, %s. Trust the pattern.",
+            "Hey %s, rest is part of the process too.",
+            "%s, your pace is your pace and it is a good one.",
+            "Something about today feels manageable, %s. Let us lean into that.",
+            "A cup of something warm and a checked-off task — perfect evening, %s.",
+            "%s, you are building something steady and that is worth noticing.",
         ]
         if state.ownedItemIds.contains("phrases_supportive") {
             phrases += [
                 "%s, you are allowed to be proud of small wins.",
                 "%s, gentle progress is still progress.",
+                "You deserve the kindness you give everyone else, %s.",
+                "%s, it is okay to need a minute. Take it.",
+                "I am proud of you for today, %s. All of it.",
+                "%s, you are doing harder things than people realize.",
             ]
         }
         if state.ownedItemIds.contains("phrases_whimsy") {
             phrases += [
                 "%s, emergency glitter report: vibes are excellent.",
                 "%s, I would do a cartwheel, but I am very round.",
+                "Plot twist, %s: you are actually doing great.",
+                "%s, I tried to high-five you but my arms are very short.",
+                "Breaking news: %s completed a task and looked cool doing it.",
+                "If I had confetti I would throw it right now, %s.",
             ]
         }
         return phrases

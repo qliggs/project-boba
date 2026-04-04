@@ -387,6 +387,8 @@ private struct TasksView: View {
     @State private var editTaskDebugReceiver = ""
     @State private var editTaskDebugValue = ""
     @State private var filter: TaskFilter = .today
+    @State private var taskPendingDelete: TaskItem?
+    @State private var showingDeleteConfirmation = false
 
     var body: some View {
         ScrollView {
@@ -415,21 +417,38 @@ private struct TasksView: View {
                                 .font(.title2.weight(.semibold))
                                 .foregroundStyle(BobaTheme.primaryText)
                             Spacer()
-                            PillSelector(selection: $filter, options: TaskFilter.allCases)
+                            TaskFilterPills(store: store, selection: $filter)
                         }
 
-                        ForEach(Array(store.tasks(for: filter).enumerated()), id: \.element.id) { index, task in
-                            TaskTile(
-                                task: task,
-                                isCompleted: store.isTaskCompleted(task),
-                                isFirst: index == 0,
-                                isLast: index == store.tasks(for: filter).count - 1,
-                                onToggleComplete: { store.toggleTaskCompletion(task) },
-                                onEdit: { prepareEditTaskDraft(task) },
-                                onDelete: { store.deleteTask(task) },
-                                onMoveUp: { store.moveTask(task, direction: .up) },
-                                onMoveDown: { store.moveTask(task, direction: .down) }
-                            )
+                        let filteredTasks = store.tasks(for: filter)
+                        if filteredTasks.isEmpty {
+                            VStack(spacing: 8) {
+                                Text(emptyStateTitle)
+                                    .font(.headline)
+                                    .foregroundStyle(BobaTheme.secondaryText)
+                                Text(emptyStateSubtitle)
+                                    .font(.subheadline)
+                                    .foregroundStyle(BobaTheme.disabledText)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 32)
+                        } else {
+                            ForEach(Array(filteredTasks.enumerated()), id: \.element.id) { index, task in
+                                TaskTile(
+                                    task: task,
+                                    isCompleted: store.isTaskCompleted(task),
+                                    isFirst: index == 0,
+                                    isLast: index == filteredTasks.count - 1,
+                                    onToggleComplete: { store.toggleTaskCompletion(task) },
+                                    onEdit: { prepareEditTaskDraft(task) },
+                                    onDelete: {
+                                        taskPendingDelete = task
+                                        showingDeleteConfirmation = true
+                                    },
+                                    onMoveUp: { store.moveTask(task, direction: .up) },
+                                    onMoveDown: { store.moveTask(task, direction: .down) }
+                                )
+                            }
                         }
                     }
                 }
@@ -459,6 +478,39 @@ private struct TasksView: View {
                 },
                 onSave: saveEditedTaskDraft
             )
+        }
+        .alert("Delete task?", isPresented: $showingDeleteConfirmation) {
+            Button("Cancel", role: .cancel) {
+                taskPendingDelete = nil
+            }
+            Button("Delete", role: .destructive) {
+                if let task = taskPendingDelete {
+                    store.deleteTask(task)
+                }
+                taskPendingDelete = nil
+            }
+        } message: {
+            if let task = taskPendingDelete {
+                Text("Are you sure you want to delete \"\(task.title)\"? This cannot be undone.")
+            }
+        }
+    }
+
+    private var emptyStateTitle: String {
+        switch filter {
+        case .today: return "No tasks due today"
+        case .daily: return "No daily tasks yet"
+        case .weekly: return "No weekly tasks yet"
+        case .all: return "No tasks here yet"
+        }
+    }
+
+    private var emptyStateSubtitle: String {
+        switch filter {
+        case .today: return "Tasks with today's schedule will appear here."
+        case .daily: return "Add a daily task to get started."
+        case .weekly: return "Add a weekly task to get started."
+        case .all: return "Tap \"Add Task\" to create your first one."
         }
     }
 
@@ -791,10 +843,63 @@ private struct SettingsView: View {
     @State private var profileNameDraft = ""
     @State private var profileDebugReceiver = ""
     @State private var profileDebugValue = ""
+    @State private var renamingCompanion = false
+    @State private var companionNameDraft = ""
+    @State private var renameDebugReceiver = ""
+    @State private var renameDebugValue = ""
+    @State private var showingResetConfirmation = false
 
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
+                CozyCard {
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text("Profile")
+                            .font(.title2.weight(.semibold))
+                            .foregroundStyle(BobaTheme.primaryText)
+
+                        HStack(spacing: 16) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Your name")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(BobaTheme.secondaryText)
+                                Text(store.state.playerName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Not set" : store.state.playerName)
+                                    .font(.headline)
+                                    .foregroundStyle(BobaTheme.primaryText)
+                            }
+                            Button("Edit") {
+                                profileNameDraft = store.state.playerName
+                                profileDebugReceiver = ""
+                                profileDebugValue = ""
+                                editingProfileName = true
+                            }
+                            .buttonStyle(CozyButtonStyle(tint: BobaTheme.accentSoft, text: BobaTheme.primaryText))
+                        }
+
+                        HStack(spacing: 16) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Companion name")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(BobaTheme.secondaryText)
+                                Text(store.state.companionName)
+                                    .font(.headline)
+                                    .foregroundStyle(BobaTheme.primaryText)
+                            }
+                            Button("Edit") {
+                                companionNameDraft = store.state.companionName
+                                renameDebugReceiver = ""
+                                renameDebugValue = ""
+                                renamingCompanion = true
+                            }
+                            .buttonStyle(CozyButtonStyle(tint: BobaTheme.accentSoft, text: BobaTheme.primaryText))
+                        }
+
+                        Text("Your name is used in supportive phrases. Your companion's name appears on the home screen.")
+                            .font(.subheadline)
+                            .foregroundStyle(BobaTheme.secondaryText)
+                    }
+                }
+
                 CozyCard {
                     VStack(alignment: .leading, spacing: 14) {
                         Text("Comfort settings")
@@ -810,22 +915,26 @@ private struct SettingsView: View {
 
                         Text("This preview saves local changes on your Mac, including profile name, companion name, tasks, avatar choice, owned items, equipped cosmetics, and current point balance.")
                             .foregroundStyle(BobaTheme.secondaryText)
+                    }
+                }
+
+                CozyCard {
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text("Preview Tools")
+                            .font(.title2.weight(.semibold))
+                            .foregroundStyle(BobaTheme.primaryText)
+                        Text("These are for testing the preview build. Reset clears all data back to the starter state.")
+                            .font(.subheadline)
+                            .foregroundStyle(BobaTheme.secondaryText)
 
                         HStack {
-                            Button("Edit profile name") {
-                                profileNameDraft = store.state.playerName
-                                profileDebugReceiver = ""
-                                profileDebugValue = ""
-                                editingProfileName = true
-                            }
-                            .buttonStyle(CozyButtonStyle(tint: BobaTheme.accentSoft, text: BobaTheme.primaryText))
-                            Button("Grant 200 Test Points") {
+                            Button("Add Test Points (+200)") {
                                 store.grantTestPoints(200)
                             }
                             .buttonStyle(CozyButtonStyle())
 
-                            Button("Reset Preview Data") {
-                                store.resetPreviewData()
+                            Button("Reset All Data") {
+                                showingResetConfirmation = true
                             }
                             .buttonStyle(CozyButtonStyle(tint: BobaTheme.warning, text: BobaTheme.primaryText))
                         }
@@ -833,19 +942,27 @@ private struct SettingsView: View {
                 }
 
                 CozyCard {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Preview notes")
-                            .font(.title2.weight(.semibold))
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Project Boba — macOS Preview")
+                            .font(.headline)
                             .foregroundStyle(BobaTheme.primaryText)
-                        Text("Android is still the real shipping target. This Mac app exists to quickly validate the product loop, readability, companion feel, and shop loop locally.")
+                        Text("Preview Build")
+                            .font(.subheadline)
                             .foregroundStyle(BobaTheme.secondaryText)
                     }
                 }
-
             }
             .padding(24)
         }
         .background(BobaTheme.pageBackground)
+        .alert("Reset All Data?", isPresented: $showingResetConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Reset", role: .destructive) {
+                store.resetPreviewData()
+            }
+        } message: {
+            Text("This will erase all tasks, points, owned items, and names. This cannot be undone.")
+        }
         .sheet(isPresented: $editingProfileName) {
             ProfileNameSheet(
                 name: $profileNameDraft,
@@ -855,6 +972,18 @@ private struct SettingsView: View {
                 onSave: {
                     store.updatePlayerName(profileNameDraft)
                     editingProfileName = false
+                }
+            )
+        }
+        .sheet(isPresented: $renamingCompanion) {
+            RenameCompanionSheet(
+                name: $companionNameDraft,
+                debugLastInputReceiver: $renameDebugReceiver,
+                debugLastInputValue: $renameDebugValue,
+                onCancel: { renamingCompanion = false },
+                onSave: {
+                    store.updateCompanion(name: companionNameDraft)
+                    renamingCompanion = false
                 }
             )
         }
@@ -1231,20 +1360,26 @@ private struct TaskTile: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
-                Text(task.title)
-                    .font(.headline)
-                    .foregroundStyle(BobaTheme.primaryText)
-                    .strikethrough(isCompleted)
+                HStack(spacing: 8) {
+                    if isCompleted {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(BobaTheme.success)
+                    }
+                    Text(task.title)
+                        .font(.headline)
+                        .foregroundStyle(isCompleted ? BobaTheme.disabledText : BobaTheme.primaryText)
+                        .strikethrough(isCompleted)
+                }
                 if !task.notes.isEmpty {
                     Text(task.notes)
-                        .foregroundStyle(BobaTheme.secondaryText)
+                        .foregroundStyle(isCompleted ? BobaTheme.disabledText : BobaTheme.secondaryText)
                 }
                 HStack {
                     Text(task.recurrenceLabel)
-                        .foregroundStyle(BobaTheme.secondaryText)
+                        .foregroundStyle(isCompleted ? BobaTheme.disabledText : BobaTheme.secondaryText)
                     Spacer()
                     Text("\(task.points) pts")
-                        .foregroundStyle(BobaTheme.accent)
+                        .foregroundStyle(isCompleted ? BobaTheme.disabledText : BobaTheme.accent)
                 }
                 FlowLayout(task.tags) { tag in
                     SlotBadge(label: tag.rawValue)
@@ -1253,7 +1388,7 @@ private struct TaskTile: View {
 
             HStack {
                 Button(isCompleted ? "Reopen" : "Complete", action: onToggleComplete)
-                    .buttonStyle(CozyButtonStyle())
+                    .buttonStyle(CozyButtonStyle(tint: isCompleted ? BobaTheme.accentSoft : BobaTheme.accent, text: isCompleted ? BobaTheme.primaryText : .white))
                 Button("Edit", action: onEdit)
                     .buttonStyle(CozyButtonStyle(tint: BobaTheme.accentSoft, text: BobaTheme.primaryText))
                 Button("Delete", action: onDelete)
@@ -1270,7 +1405,8 @@ private struct TaskTile: View {
             }
         }
         .padding(18)
-        .background(BobaTheme.cardBackgroundStrong, in: RoundedRectangle(cornerRadius: 22))
+        .background(isCompleted ? BobaTheme.cardBackground : BobaTheme.cardBackgroundStrong, in: RoundedRectangle(cornerRadius: 22))
+        .opacity(isCompleted ? 0.75 : 1.0)
         .overlay(
             RoundedRectangle(cornerRadius: 22)
                 .stroke(BobaTheme.border.opacity(0.35), lineWidth: 1)
@@ -1797,6 +1933,35 @@ private struct PillSelector<Option: Identifiable & Hashable>: View {
         case let recurrence as TaskRecurrence: return recurrence.title
         case let section as CompanionSection: return section.title
         default: return String(describing: option.id)
+        }
+    }
+}
+
+private struct TaskFilterPills: View {
+    @ObservedObject var store: BobaStore
+    @Binding var selection: TaskFilter
+
+    var body: some View {
+        HStack(spacing: 8) {
+            ForEach(TaskFilter.allCases) { filter in
+                let count = store.tasks(for: filter).count
+                Button {
+                    selection = filter
+                } label: {
+                    Text("\(filter.title) (\(count))")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(selection == filter ? BobaTheme.selectedChipText : BobaTheme.unselectedChipText)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 9)
+                        .background(selection == filter ? BobaTheme.selectedChip : BobaTheme.unselectedChip, in: Capsule())
+                        .overlay(
+                            Capsule()
+                                .stroke(BobaTheme.border.opacity(selection == filter ? 0.0 : 0.35), lineWidth: 1)
+                                .allowsHitTesting(false)
+                        )
+                }
+                .buttonStyle(.plain)
+            }
         }
     }
 }
